@@ -15,9 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "little steps — Habit tracker",
   description: "A calm, simple place to build better daily habits.",
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/app-icon.png",
+    shortcut: "/app-icon.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 
