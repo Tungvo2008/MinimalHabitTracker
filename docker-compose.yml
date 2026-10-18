@@ -1,0 +1,15 @@
+services:
+  habit-tracker:
+    build: .
+    container_name: habit-tracker
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      HABIT_DB_PATH: /app/data/habits.db
+    volumes:
+      - habit_data:/app/data
+
+volumes:
+  habit_data:
