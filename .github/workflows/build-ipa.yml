@@ -24,32 +24,7 @@ jobs:
 
       - name: Prepare App Icon
         run: |
-          mkdir -p ios/HabitTracker/Assets.xcassets/AppIcon.appiconset
           sips -z 1024 1024 public/app-icon.png --out ios/HabitTracker/Assets.xcassets/AppIcon.appiconset/icon-1024.png
-          cat << 'JSON' > ios/HabitTracker/Assets.xcassets/AppIcon.appiconset/Contents.json
-          {
-            images: [
-              {
-                filename: icon-1024.png,
-                idiom: universal,
-                platform: ios,
-                size: 1024x1024
-              }
-            ],
-            info: {
-              author: xcode,
-              version: 1
-            }
-          }
-          JSON
-          cat << 'JSON' > ios/HabitTracker/Assets.xcassets/Contents.json
-          {
-            info: {
-              author: xcode,
-              version: 1
-            }
-          }
-          JSON
 
       - name: Generate Xcode Project
         run: |
@@ -59,14 +34,17 @@ jobs:
       - name: Build iOS App
         run: |
           cd ios
-          xcodebuild -list -project HabitTracker.xcodeproj
-          xcodebuild clean build             -project HabitTracker.xcodeproj             -scheme HabitTracker             -configuration Release             -destination 'generic/platform=iOS'             -derivedDataPath build             CODE_SIGN_IDENTITY="-"             CODE_SIGNING_REQUIRED=NO             CODE_SIGN_ENTITLEMENTS=""             CODE_SIGNING_ALLOWED=YES 2>&1 | tee build.log || {
-              echo "### ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              tail -n 80 build.log >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
+          xcodebuild clean build \
+            -project HabitTracker.xcodeproj \
+            -scheme HabitTracker \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            CODE_SIGNING_ALLOWED=YES
+
       - name: Package IPA
         run: |
           cd ios
