@@ -14,10 +14,19 @@ permissions:
 
 jobs:
   build-ipa:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Select Latest Xcode
+        run: |
+          echo "Available Xcodes:"
+          ls -d /Applications/Xcode*
+          LATEST_XCODE=$(ls -d /Applications/Xcode* | sort -V | tail -n 1)
+          echo "Selecting: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE"
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -32,8 +41,6 @@ jobs:
           xcodegen generate
 
       - name: Build iOS App
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ios
           xcodebuild clean build \
@@ -45,12 +52,7 @@ jobs:
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_ALLOWED=YES > build.log 2>&1 || {
-              head -n 40 build.log > summary.txt
-              tail -n 60 build.log >> summary.txt
-              gh release create "error-${{ github.run_number }}" --title "Build Error Log ${{ github.run_number }}" --notes-file summary.txt || true
-              exit 74
-            }
+            CODE_SIGNING_ALLOWED=YES
 
       - name: Package IPA
         run: |
