@@ -41,6 +41,8 @@ jobs:
           xcodegen generate
 
       - name: Build iOS App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ios
           xcodebuild clean build \
@@ -49,10 +51,16 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_ALLOWED=YES
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_ENTITLEMENTS="" > build.log 2>&1 || {
+              head -n 50 build.log > summary.txt
+              tail -n 80 build.log >> summary.txt
+              gh release create "error-${{ github.run_number }}" --title "Build Error ${{ github.run_number }}" --notes-file summary.txt || true
+              cat build.log
+              exit 65
+            }
 
       - name: Package IPA
         run: |
