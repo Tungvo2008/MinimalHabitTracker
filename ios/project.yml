@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: vn.id.thanhtungvo
   deploymentTarget:
     iOS: "16.0"
-  xcodeVersion: "15.0"
+  createSharedSchemes: true
 targets:
   HabitTracker:
     type: application
@@ -25,3 +25,12 @@ targets:
         CODE_SIGNING_REQUIRED: "NO"
         CODE_SIGN_ENTITLEMENTS: ""
         CODE_SIGNING_ALLOWED: "YES"
+schemes:
+  HabitTracker:
+    build:
+      targets:
+        HabitTracker: all
+    run:
+      config: Debug
+    archive:
+      config: Release
