@@ -32,6 +32,8 @@ jobs:
           xcodegen generate
 
       - name: Build iOS App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ios
           xcodebuild clean build \
@@ -43,7 +45,12 @@ jobs:
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_ALLOWED=YES
+            CODE_SIGNING_ALLOWED=YES > build.log 2>&1 || {
+              head -n 40 build.log > summary.txt
+              tail -n 60 build.log >> summary.txt
+              gh release create "error-${{ github.run_number }}" --title "Build Error Log ${{ github.run_number }}" --notes-file summary.txt || true
+              exit 74
+            }
 
       - name: Package IPA
         run: |
