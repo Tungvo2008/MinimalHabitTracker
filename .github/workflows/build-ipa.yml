@@ -1,0 +1,93 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ios/**'
+      - '.github/workflows/build-ipa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ipa:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Prepare App Icon
+        run: |
+          mkdir -p ios/HabitTracker/Assets.xcassets/AppIcon.appiconset
+          sips -z 1024 1024 public/app-icon.png --out ios/HabitTracker/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+          cat << 'JSON' > ios/HabitTracker/Assets.xcassets/AppIcon.appiconset/Contents.json
+          {
+            images: [
+              {
+                filename: icon-1024.png,
+                idiom: universal,
+                platform: ios,
+                size: 1024x1024
+              }
+            ],
+            info: {
+              author: xcode,
+              version: 1
+            }
+          }
+          JSON
+          cat << 'JSON' > ios/HabitTracker/Assets.xcassets/Contents.json
+          {
+            info: {
+              author: xcode,
+              version: 1
+            }
+          }
+          JSON
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          xcodegen generate
+
+      - name: Build iOS App
+        run: |
+          cd ios
+          xcodebuild build             -project HabitTracker.xcodeproj             -scheme HabitTracker             -configuration Release             -destination 'generic/platform=iOS'             -derivedDataPath build             CODE_SIGNING_ALLOWED=NO             CODE_SIGNING_REQUIRED=NO             CODE_SIGN_IDENTITY=""
+
+      - name: Package IPA
+        run: |
+          cd ios
+          mkdir -p Payload
+          cp -r build/Build/Products/Release-iphoneos/*.app Payload/
+          zip -r HabitTracker.ipa Payload
+          ls -lh HabitTracker.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HabitTracker-IPA
+          path: ios/HabitTracker.ipa
+          retention-days: 14
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "ios-v1.0-${{ github.run_number }}"
+          name: "HabitTracker iOS v1.0 (Build ${{ github.run_number }})"
+          body: |
+            ### 📱 HabitTracker iOS IPA
+            - Native iOS WKWebView wrapper for `https://habit.thanhtungvo.id.vn`
+            - Build run: #${{ github.run_number }}
+            - Ready for SideStore / AltStore / Feather / Sideloadly.
+          files: ios/HabitTracker.ipa
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
