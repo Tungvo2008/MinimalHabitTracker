@@ -50,8 +50,8 @@ struct ContentView: View {
                 WebViewRepresentable(
                     url: appURL,
                     reloadToken: reloadToken,
-                    isLoading: ,
-                    hasError: 
+                    isLoading: $isLoading,
+                    hasError: $hasError
                 )
                 .ignoresSafeArea(.keyboard, edges: .bottom)
             }
