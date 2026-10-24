@@ -53,7 +53,7 @@ struct ContentView: View {
                     isLoading: $isLoading,
                     hasError: $hasError
                 )
-                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .ignoresSafeArea(edges: .bottom)
             }
         }
     }
